@@ -1,18 +1,36 @@
-require("dotenv").config()
-const http = require("http")
-const AppDataSource = require("./db")
+require("dotenv").config(); 
+  // 載入 .env 檔案，讓程式可以使用裡面的環境變數。
+  // 為何不用const dotenv = require("dotenv")，再用dotenv.config()呢？
+  // 因為 dotenv.config() 會直接載入 .env 檔案，並且將裡面的環境變數加入到 process.env 中，所以不需要再用變數去接
+const http = require("http");
+  // 若只輸入 require("http") 會發生什麼事情？ 會發生錯誤，因為 require("http") 會回傳一個物件，但是沒有用變數去接
+  // 會回傳什麼物件？ 會回傳一個 HTTP 模組的物件。
+const AppDataSource = require("./db");
+  // 這邊的變數名稱是怎麼來的？ 是這個檔案的名稱，但是把 .js 去掉
+  // 若只輸入 require("./db") 會發生什麼事情？ 會發生錯誤，因為 require("./db") 會回傳一個物件，但是沒有用變數去接
+  // 會回傳什麼物件？ 會回傳一個 DataSource 的物件。
+  // 物件內容是什麼？ 是一個資料庫的連線設定。
 const errHandle = require("./errorHandle");
-
+  // 若只輸入 require("./errorHandle") 會發生什麼事情？ 會發生錯誤，因為 require("./errorHandle") 會回傳一個函式，但是沒有用變數去接
+  // 會回傳什麼函式？ 會回傳一個錯誤處理的函式。
+  // 這個函式的功能是什麼？ 是用來處理錯誤的函式。
 function isUndefined (value) {
-  return value === undefined
+  return value === undefined;
 }
 
 function isNotValidSting (value) {
-  return typeof value !== "string" || value.trim().length === 0 || value === ""
+  return typeof value !== "string" || value.trim().length === 0 || value === "";
+  // value.trim()是什麼意思？ 是把字串前後的空白字元去掉
+  // 這邊為什麼要用 typeof value !== "string"？ 因為這樣可以避免使用者輸入非字串的資料
+  // 這邊為什麼要用 value.trim().length === 0 ？ 因為這樣可以避免使用者只輸入空白字元
+  // 這邊為什麼要用 value === "" ？ 因為這樣可以避免使用者只輸入空字串
+
 }
 
 function isNotValidInteger (value) {
-  return typeof value !== "number" || value < 0 || value % 1 !== 0
+  return typeof value !== "number" || value < 0 || value % 1 !== 0;
+  // 這邊為什麼要用 value < 0 ？ 因為這樣可以避免使用者輸入負數
+  // 這邊為什麼要用 value % 1 !== 0 ？ 因為這樣可以避免使用者輸入小數
 }
 
 const requestListener = async (req, res) => {
@@ -22,13 +40,16 @@ const requestListener = async (req, res) => {
     "Access-Control-Allow-Methods": "PATCH, POST, GET,OPTIONS,DELETE",
     "Content-Type": "application/json"
   }
-  let body = ""
+  let body = "";
   req.on("data", (chunk) => {
-    body += chunk
-  })
+    body += chunk;
+  });
 
   if (req.url === "/api/credit-package" && req.method === "GET") {
-    try {
+    try { 
+      // 為何這邊要用try catch? 因為這邊是一個非同步的函式，如果資料庫端有錯誤發生，會被拋出到外層，而外層沒有處理錯誤的話，會造成程式中斷  
+      // 為何這邊要用await? 因為這邊是一個非同步的函式，await 會等待這個函式執行完，才會繼續執行下面的程式碼
+      // 以下程式碼的意思是，從資料庫中取得 CreditPackage 的資料，並且只取得 id, name, credit_amount, price 四個欄位的資料
       const packages = await AppDataSource.getRepository("CreditPackage").find({
         select: ["id", "name", "credit_amount", "price"]
       });
@@ -45,6 +66,7 @@ const requestListener = async (req, res) => {
     req.on("end", async () => {
       try {
         const data = JSON.parse(body);
+        // POST防呆1：驗證資料格式是否正確
         if (isUndefined(data.name) || isNotValidSting(data.name) ||
                 isUndefined(data.credit_amount) || isNotValidInteger(data.credit_amount) ||
                 isUndefined(data.price) || isNotValidInteger(data.price)) {
@@ -54,14 +76,20 @@ const requestListener = async (req, res) => {
             "message" : "欄位未填寫正確"
           }));
           res.end();
-          return;
+          return; // 為何這邊要用return? 因為如果欄位未填寫正確，就不需要繼續執行下面的程式碼
+                  // 跑完 return 後會結束這個函式，那接下來跑哪個函式呢? 會跑到 req.on("end", async () => { 這個函式
+                  // 那這邊把 return 拿掉會怎樣? 如果欄位未填寫正確，會繼續執行下面的程式碼，但是這樣會造成錯誤
         }
+        // POST防呆2：比對資料庫資料是否重複
+        // 下面這行的意思是？ 從資料庫中取得 CreditPackage 的資料，並且只取得 name 欄位的資料
         const creditPackageRepo = await AppDataSource.getRepository("CreditPackage");
         const existPackage = await creditPackageRepo.find({
-          "where" : {
+          // 這邊的 where 是什麼意思？ 是一個條件，這個條件是指 name 欄位的值要等於 data.name
+          where : {
             "name" : data.name
           }
-        })
+        });
+        // 為什麼 existPackage.length > 0 代表資料重複？ 因為如果資料庫中有相同的 name 欄位的資料，就會回傳一個陣列，陣列的長度就會大於 0
         if (existPackage.length > 0) {
           res.writeHead(409, headers)
           res.write(JSON.stringify({
@@ -69,14 +97,21 @@ const requestListener = async (req, res) => {
             "message" : "資料重複"
           }));
           res.end();
-          return;
+          return; //return結束後會跑哪個程式碼嗎? 會跑到 req.on("end", async () => { 這個函式
         }
         const newPackage = await creditPackageRepo.create({
           "name" : data.name,
           "credit_amount" : data.credit_amount,
           "price" : data.price
+          // id 和 create_at 這兩個欄位是怎麼處理的？ id 是主鍵，會自動生成，create_at 是時間戳記，會自動生成
+          // 不用寫什麼代碼就會自動生成嗎？ 是的，因為在 CreditPackage 的 EntitySchema 中有設定
+          // 若price也沒有賦值，會自動生成嗎？ 不會，因為在 EntitySchema 中有設定 nullable: false
+          // 那為何 create_at 會自動生成？ 因為在 EntitySchema 中有設定 createDate: true
+          // 那為何 id 會自動生成？ 因為在 EntitySchema 中有設定 generated: "uuid"
         });
         const result = await creditPackageRepo.save(newPackage);
+        // 為何要定義一個 result 變數？ 因為 save 會回傳一個 promise，這個 promise 會回傳一個 CreditPackage 的物件
+        // 為何要用 await? 因為 save 是一個非同步的函式，await 會等待這個函式執行完，才會繼續執行下面的程式碼
         res.writeHead(200, headers);
         res.write(JSON.stringify({
           "status" : "success",
@@ -101,6 +136,9 @@ const requestListener = async (req, res) => {
       }
       const result = await AppDataSource.getRepository("CreditPackage").delete(packageId);
       if (result.affected === 0) {
+        // 這邊的 result.affected === 0 代表什麼？ 代表沒有刪除到任何資料
+        // 為什麼代表沒有刪除到任何資料？ 因為 delete 會回傳一個物件，這個物件有一個 affected 的屬性，這個屬性代表刪除到幾筆資料
+        // 那為何要判斷 result.affected === 0？ 因為如果沒有刪除到任何資料，就代表 ID 錯誤  
         res.writeHead(400, headers);
         res.write(JSON.stringify({
           "status" : "failed",
@@ -232,3 +270,6 @@ async function startServer () {
 }
 
 module.exports = startServer();
+// 若沒有以上這行會怎樣？ 會導致這個檔案無法被引入
+// 在哪有被引入這個檔案？ 在 index.js 中，index.js 在哪？ 在根目錄下
+// 我找不到耶？ 這個檔案是被隱藏的，所以你找不到
