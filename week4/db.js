@@ -81,9 +81,7 @@ const AppDataSource = new DataSource({
 
 
 // 透過 entities 陣列將所有 EntitySchema 加入。
-
 // 啟動時 TypeORM 會根據這些設定自動建立或更新表結構（若 synchronize: true）。
-
 // 之後就能使用 AppDataSource.getRepository("CreditPackage") 或 AppDataSource.getRepository("Skill") 進行 CRUD。
 
 module.exports = AppDataSource;

@@ -3,30 +3,23 @@ require("dotenv").config();
   // 為何不用const dotenv = require("dotenv")，再用dotenv.config()呢？
   // 因為 dotenv.config() 會直接載入 .env 檔案，並且將裡面的環境變數加入到 process.env 中，所以不需要再用變數去接
 const http = require("http");
-  // 若只輸入 require("http") 會發生什麼事情？ 會發生錯誤，因為 require("http") 會回傳一個物件，但是沒有用變數去接
-  // 會回傳什麼物件？ 會回傳一個 HTTP 模組的物件。
 const AppDataSource = require("./db");
-  // 這邊的變數名稱是怎麼來的？ 是這個檔案的名稱，但是把 .js 去掉
+  // 為何變數取名為AppDataSource？ 因為這個變數是用來連接資料庫的，所以取名為 AppDataSource
   // 若只輸入 require("./db") 會發生什麼事情？ 會發生錯誤，因為 require("./db") 會回傳一個物件，但是沒有用變數去接
   // 會回傳什麼物件？ 會回傳一個 DataSource 的物件。
   // 物件內容是什麼？ 是一個資料庫的連線設定。
 const errHandle = require("./errorHandle");
-  // 若只輸入 require("./errorHandle") 會發生什麼事情？ 會發生錯誤，因為 require("./errorHandle") 會回傳一個函式，但是沒有用變數去接
-  // 會回傳什麼函式？ 會回傳一個錯誤處理的函式。
-  // 這個函式的功能是什麼？ 是用來處理錯誤的函式。
 function isUndefined (value) {
   return value === undefined;
 }
-
-function isNotValidSting (value) {
+function isNotValidString (value) {
   return typeof value !== "string" || value.trim().length === 0 || value === "";
   // value.trim()是什麼意思？ 是把字串前後的空白字元去掉
   // 這邊為什麼要用 typeof value !== "string"？ 因為這樣可以避免使用者輸入非字串的資料
   // 這邊為什麼要用 value.trim().length === 0 ？ 因為這樣可以避免使用者只輸入空白字元
   // 這邊為什麼要用 value === "" ？ 因為這樣可以避免使用者只輸入空字串
-
+  // retrun value 會是 1 或 0 嗎？ 會是 true 或 false
 }
-
 function isNotValidInteger (value) {
   return typeof value !== "number" || value < 0 || value % 1 !== 0;
   // 這邊為什麼要用 value < 0 ？ 因為這樣可以避免使用者輸入負數
@@ -55,6 +48,9 @@ const requestListener = async (req, res) => {
       });
       res.writeHead(200, headers);
       res.write(JSON.stringify({
+        // JSON.stringify() 是什麼？ 是把物件轉換成 JSON 字串
+        // 為何要轉換成 JSON 字串？ 因為這樣才能傳送到前端
+        // 若少了 JSON.stringify() 會發生什麼事情？ 會發生錯誤，因為 res.write() 只能傳送字串，不能傳送物件
         "status" : "success",
         "data" : packages
       }));
@@ -66,10 +62,13 @@ const requestListener = async (req, res) => {
     req.on("end", async () => {
       try {
         const data = JSON.parse(body);
+        // JSON.parse() 是什麼？ 是把 JSON 字串轉換成物件
+        // 為何要轉換成物件？ 因為這樣才能使用物件中的屬性
+        // 若少了 JSON.parse() 會發生什麼事情？ 會發生錯誤，因為 body 是一個字串，不能直接使用物件中的屬性
         // POST防呆1：驗證資料格式是否正確
-        if (isUndefined(data.name) || isNotValidSting(data.name) ||
-                isUndefined(data.credit_amount) || isNotValidInteger(data.credit_amount) ||
-                isUndefined(data.price) || isNotValidInteger(data.price)) {
+        if (isUndefined(data.name) || isNotValidString(data.name) ||
+            isUndefined(data.credit_amount) || isNotValidInteger(data.credit_amount) ||
+            isUndefined(data.price) || isNotValidInteger(data.price)) {
           res.writeHead(400, headers)
           res.write(JSON.stringify({
             "status" : "failed",
@@ -125,7 +124,12 @@ const requestListener = async (req, res) => {
   } else if (req.url.startsWith("/api/credit-package/") && req.method === "DELETE") {
     try {
       const packageId = req.url.split("/").pop();
-      if (isUndefined(packageId) || isNotValidSting(packageId)) {
+      // 為何要用 split("/") ? 因為這樣可以把 url 拆成一個陣列，然後取最後一個元素
+      // 為何要用 pop() ? 因為這樣可以取出陣列的最後一個元素
+      // 為何要用 packageId ? 因為這樣可以取得 url 中的 id
+      // 為何要用 req.url ? 因為這樣可以取得 url
+      // 為何要用 startsWith("/api/credit-package/") ? 因為這樣可以判斷 url 是否以 /api/credit-package/ 開頭
+      if (isUndefined(packageId) || isNotValidString(packageId)) {
         res.writeHead(400, headers);
         res.write(JSON.stringify({
           "status" : "failed",
@@ -179,7 +183,7 @@ const requestListener = async (req, res) => {
     req.on("end", async () => {
       try {
         const data = JSON.parse(body);
-        if (isUndefined(data.name) || isNotValidSting(data.name)) {
+        if (isUndefined(data.name) || isNotValidString(data.name)) {
           res.writeHead(400, headers)
           res.write(JSON.stringify({
             "status" : "failed",
@@ -220,7 +224,7 @@ const requestListener = async (req, res) => {
   } else if (req.url.startsWith("/api/coaches/skill") && req.method === "DELETE"){
     try {
       const skillId = req.url.split("/").pop();
-      if (isUndefined(skillId) || isNotValidSting(skillId)) {
+      if (isUndefined(skillId) || isNotValidString(skillId)) {
         res.writeHead(400, headers);
         res.write(JSON.stringify({
           "status" : "failed",
