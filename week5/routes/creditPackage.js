@@ -1,104 +1,107 @@
 const express = require('express');
-// express.Router 是什麼？是 express 的一個模組，用來建立路由的
-// 為何要用 express.Router()？ 因為這樣可以讓程式碼更簡潔
 const router = express.Router();
 const { dataSource } = require('../db/data-source');
 const logger = require('../utils/logger')('CreditPackage');
-const {isValidString, isNumber} = require('../utils/validUtils');
+const {
+  isUndefined,
+  isNotValidInteger,
+  isNotValidString,
+  isValidPassword
+} = require('../utils/validUtils'); 
 
-function isUndefined (value) {
-  return value === undefined;
-}
-
-function isNotValidSting (value) {
-  return typeof value !== 'string' || value.trim().length === 0 || value === '';
-}
-
-function isNotValidInteger (value) {
-  return typeof value !== 'number' || value < 0 || value % 1 !== 0;
-}
-
-router.get('/', async (req, res, next) => {
-  try {
+// 取得購買方案列表：從資料庫取出 CreditPackage 資料表的所有資料，並只取出 id, name, credit_amount, price 這四個欄位的資料
+router.get("/", async (req, res, next) => {
+  try { // 這邊的 try-catch 是為了避免資料庫錯誤導致程式崩潰嗎？是的。
     const creditPackage = await dataSource.getRepository('CreditPackage').find({
       select: ['id', 'name', 'credit_amount', 'price']
     });
+    // console.log(creditPackage);
     res.status(200).json({
-      status: "success",
-      data: creditPackage
+      "status": "success",
+      "data": creditPackage
     });
-  } catch (error) {
-    logger.error(error);
-    next(error);
+  } catch (error) { // 這會怎麼運作？
+      logger.error(error);
+      next(error);
   }
 });
 
-router.post('/', async (req, res, next) => {
+// 新增購買方案：從 req.body 取出資料，再存入 CreditPackage 資料表中
+router.post("/", async (req, res, next) => {
   try {
-    const { name, credit_amount: creditAmount, price } = req.body;
-    if (isUndefined(name) || isNotValidSting(name) ||
-      isUndefined(creditAmount) || isNotValidInteger(creditAmount) ||
-            isUndefined(price) || isNotValidInteger(price)) {
-      res.status(400).json({
-        status: 'failed',
-        message: '欄位未填寫正確'
+    const { 
+      name, 
+      price,
+      "credit_amount": creditAmount,
+    } = req.body; // 解構賦值的寫法，可讓程式碼更簡潔，意思等於 const name = req.body.name; const price = req.body.price; const creditAmount = req.body.credit_amount;
+    if (  // 驗證必填欄位
+      isUndefined(name) || isNotValidString(name) ||
+      isUndefined(price) || isNotValidInteger(price) ||
+      isUndefined(creditAmount) || isNotValidInteger(creditAmount)) {
+        res.status(400).json({
+        "status": 'failed',
+        "message": '欄位未填寫正確'
       });
-      return;
-    }
-    const creditPurchaseRepo = await dataSource.getRepository('CreditPackage');
-    const existCreditPurchase = await creditPurchaseRepo.find({
-      where: {
-        name
+      return; // 這邊return 會跳到出去哪裡？
+    }   // 確認是否有重複的方案名稱
+    const creditPackageRepo = await dataSource.getRepository('CreditPackage'); 
+    const existCreditPackage = await creditPackageRepo.find({
+      where: { 
+        "name": name 
       }
     });
-    if (existCreditPurchase.length > 0) {
+    if (existCreditPackage.length > 0) {
       res.status(409).json({
-        status: 'failed',
-        message: '資料重複'
+        "status": "failed",
+        "message": '資料重複'
       });
       return;
     }
-    const newCreditPurchase = await creditPurchaseRepo.create({
+    const newCreditPackage = creditPackageRepo.create({ // 這邊不用 await 因為這邊只是建立一個新的 CreditPackage 物件
       name,
-      credit_amount: creditAmount,
+      "credit_amount": creditAmount,
       price
     });
-    const result = await creditPurchaseRepo.save(newCreditPurchase)
+    const result = await creditPackageRepo.save(newCreditPackage); // 這邊才是將資料存入資料庫。
     res.status(200).json({
-      status: 'success',
-      data: result
+      "status": "success",
+      "data": result,
     });
   } catch (error) {
-    logger.error(error);
-    next(error);
+      logger.error(error);
+      next(error);
   }
 });
 
-router.delete('/:creditPackageId', async (req, res, next) => {
+// 刪除購買方案：從 req.params 取出 creditPackageId，然後從 CreditPackage 資料表中刪除該筆資料
+router.delete("/:creditPackageId", async (req, res, next) => {
   try {
     const { creditPackageId } = req.params;
-    if (isUndefined(creditPackageId) || isNotValidSting(creditPackageId)) {
+    // 驗證 creditPackageId 是否為有效的 UUID
+    if (isUndefined(creditPackageId) || isNotValidString(creditPackageId)) {
       res.status(400).json({
-        status: 'failed',
-        message: '欄位未填寫正確'
+        "status": "failed",
+        "message": "欄位未填寫正確"
       });
       return;
     }
     const result = await dataSource.getRepository('CreditPackage').delete(creditPackageId);
-    if (result.affected === 0) {
+    if (result.affected === 0) { 
+      // 這邊的 result.affected 是什麼意思？ 是指刪除的資料筆數
+      // 如果沒有刪除任何資料，代表 creditPackageId 不存在資料表中
       res.status(400).json({
-        status: 'failed',
-        message: 'ID錯誤'
+        "status": "failed",
+        "message": "ID錯誤"
       });
       return;
     }
     res.status(200).json({
-      status: 'success',
-      data: result
+      "status": "success",
+      "data": result
     });
   } catch (error) {
-    logger.error(error);
-    next(error);
+      logger.error(error);
+      next(error);
   }
 });
 

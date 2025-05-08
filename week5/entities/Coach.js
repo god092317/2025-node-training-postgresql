@@ -49,7 +49,7 @@ module.exports = new EntitySchema({
       joinColumn: {
         name: 'user_id',
         referencedColumnName: 'id',
-        foreignKeyConstraintName: 'coach_user_id_fk'
+        foreignKeyConstraintName: 'coach_user_id_fk' //這個欄位可以自己取名
       }
     }
   }
