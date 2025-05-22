@@ -1,7 +1,7 @@
 // Coach.js
 
 const { EntitySchema } = require('typeorm');
-
+console.log("data-entitiesCoach 0-------------------");
 module.exports = new EntitySchema({
   name: 'Coach',
   tableName: 'COACH',
@@ -45,7 +45,7 @@ module.exports = new EntitySchema({
     User: {
       target: 'User',
       type: 'one-to-one',
-      inverseSide: 'Coach',
+      inverseSide: 'Coach', // 這是？
       joinColumn: {
         name: 'user_id',
         referencedColumnName: 'id',

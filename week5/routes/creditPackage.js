@@ -9,10 +9,11 @@ const {
   isValidPassword
 } = require('../utils/validUtils'); 
 
+console.log("routesCreadit 0-------------------");
 // 取得購買方案列表：從資料庫取出 CreditPackage 資料表的所有資料，並只取出 id, name, credit_amount, price 這四個欄位的資料
 router.get("/", async (req, res, next) => {
-  try { // 這邊的 try-catch 是為了避免資料庫錯誤導致程式崩潰嗎？是的。
-    const creditPackage = await dataSource.getRepository('CreditPackage').find({
+  try { // 使用 try-catch 是為了避免資料庫錯誤導致程式崩潰
+    const creditPackage = await dataSource.getRepository("CreditPackage").find({
       select: ['id', 'name', 'credit_amount', 'price']
     });
     // console.log(creditPackage);
@@ -20,9 +21,9 @@ router.get("/", async (req, res, next) => {
       "status": "success",
       "data": creditPackage
     });
-  } catch (error) { // 這會怎麼運作？
-      logger.error(error);
-      next(error);
+  } catch (error) {         // 若資料庫連線錯誤，會將錯誤訊息傳到這邊
+      logger.error(error);  // ？？
+      next(error);          // 這邊的 next 會將錯誤傳到 app.js 的錯誤處理 middleware？
   }
 });
 
@@ -42,18 +43,19 @@ router.post("/", async (req, res, next) => {
         "status": 'failed',
         "message": '欄位未填寫正確'
       });
-      return; // 這邊return 會跳到出去哪裡？
-    }   // 確認是否有重複的方案名稱
-    const creditPackageRepo = await dataSource.getRepository('CreditPackage'); 
-    const existCreditPackage = await creditPackageRepo.find({
+      return; // 這邊return 會跳到出去哪裡？ 到上一層 try-catch ？
+    }   
+    // 確認是否有重複的方案名稱
+    const creditPackageRepo = dataSource.getRepository('CreditPackage'); 
+    const existCreditPackage = await creditPackageRepo.findOne({
       where: { 
-        "name": name 
+        "name": name
       }
     });
-    if (existCreditPackage.length > 0) {
+    if (existCreditPackage) {
       res.status(409).json({
         "status": "failed",
-        "message": '資料重複'
+        "message": "資料重複"
       });
       return;
     }
@@ -104,5 +106,5 @@ router.delete("/:creditPackageId", async (req, res, next) => {
       next(error);
   }
 });
-
+console.log("routesCreadit 1-------------------");
 module.exports = router;

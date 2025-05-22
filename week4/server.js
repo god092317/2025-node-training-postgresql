@@ -18,7 +18,6 @@ function isNotValidString (value) {
   // 這邊為什麼要用 typeof value !== "string"？ 因為這樣可以避免使用者輸入非字串的資料
   // 這邊為什麼要用 value.trim().length === 0 ？ 因為這樣可以避免使用者只輸入空白字元
   // 這邊為什麼要用 value === "" ？ 因為這樣可以避免使用者只輸入空字串
-  // retrun value 會是 1 或 0 嗎？ 會是 true 或 false
 }
 function isNotValidInteger (value) {
   return typeof value !== "number" || value < 0 || value % 1 !== 0;
@@ -43,7 +42,7 @@ const requestListener = async (req, res) => {
       // 為何這邊要用try catch? 因為這邊是一個非同步的函式，如果資料庫端有錯誤發生，會被拋出到外層，而外層沒有處理錯誤的話，會造成程式中斷  
       // 為何這邊要用await? 因為這邊是一個非同步的函式，await 會等待這個函式執行完，才會繼續執行下面的程式碼
       // 以下程式碼的意思是，從資料庫中取得 CreditPackage 的資料，並且只取得 id, name, credit_amount, price 四個欄位的資料
-      const packages = await AppDataSource.getRepository("CreditPackage").find({
+      const packages = await AppDataSource.getRepository("CreditPackage").find({ 
         select: ["id", "name", "credit_amount", "price"]
       });
       res.writeHead(200, headers);
@@ -266,7 +265,7 @@ const requestListener = async (req, res) => {
 const server = http.createServer(requestListener);
 
 async function startServer () {
-  await AppDataSource.initialize()
+  await AppDataSource.initialize();
   console.log("資料庫連接成功");
   server.listen(process.env.PORT);
   console.log(`伺服器啟動成功, port: ${process.env.PORT}`);

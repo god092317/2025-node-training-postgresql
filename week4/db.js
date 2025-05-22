@@ -9,8 +9,8 @@ const { DataSource, EntitySchema } = require("typeorm");
 // 解構賦值是什麼？ 解構賦值是一種 ES6 的語法，可以將物件或陣列中的屬性或元素取出來使用
 // 解構賦值的語法是什麼？ const { 屬性1, 屬性2 } = require("模組名稱")
 const CreditPackage = new EntitySchema({
-  name: "CreditPackage", // 在程式碼中的名稱
-  tableName: "CREDIT_PACKAGE", // 在資料庫中的名稱
+  name: "CreditPackage",        // 在程式碼中的名稱
+  tableName: "CREDIT_PACKAGE",  // 在資料庫中的名稱
   columns: {
     id: {
       primary: true,  // 是主鍵的意思
@@ -20,9 +20,9 @@ const CreditPackage = new EntitySchema({
     },
     name: {
       type: "varchar",
-      length: 50,
+      length: 50,     // 限制字串長度只有 50 個字
       nullable: false,
-      unique: true
+      unique: true    // 唯一性（不能有２筆資料的該欄位值相同）
     },
     credit_amount: {
       type: "integer",
@@ -30,8 +30,8 @@ const CreditPackage = new EntitySchema({
     },
     price: {
       type: "numeric",
-      precision: 10,
-      scale: 2,
+      precision: 10, // 整數的有效位數？ 
+      scale: 2,      // 小數點後２位
       nullable: false
     },
     createdAt: {

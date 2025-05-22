@@ -1,16 +1,22 @@
 const dotenv = require('dotenv');
-
+// dotenv 是什麼？是用來讀取 .env 檔案的
+// 為何要用 dotenv？ 因為這樣可以讓我們在程式中使用環境變數
 const result = dotenv.config();
+// 如果沒有這行，dotenv 就無法讀取 .env 檔案中的環境變數，導致無法使用環境變數
+// console.log('dotenv', dotenv);
+// console.log('dotenv result', result);
 const db = require('./db');
 const web = require('./web');
 
 if (result.error) {
   throw result.error;
 }
-const config = {
+
+const config = { 
   db,
   web
 };
+console.log("configIndex-------------------");
 
 class ConfigManager {
   /**

@@ -8,7 +8,7 @@ const {
   isNotValidString,
   isValidPassword
 } = require('../utils/validUtils'); 
-
+console.log("routesSkill 0-------------------");
 // 取得教練專長列表：從資料庫取出 Skill 資料表的所有資料，並且只取出 id, name 這兩個欄位的資料
 router.get("/", async(req, res, next)=>{
   try {
@@ -36,13 +36,13 @@ router.post("/", async(req, res, next)=>{
           })
           return;
       }
-      const skillRepo = await dataSource.getRepository("Skill");
-      const existSkill = await skillRepo.find({
+      const skillRepo = dataSource.getRepository("Skill"); 
+      const existSkill = await skillRepo.findOne({
           where : {
-            "name" : name
+            name
           }
       });
-      if (existSkill.length > 0) {
+      if (existSkill) {
           res.status(409).json({
               "status": "failed",
               "message": "資料重複"
@@ -94,5 +94,5 @@ router.delete("/:skillId", async(req, res, next)=>{
       next(error);
   }   
 });
-
+console.log("routesSkill 1-------------------");
 module.exports = router;

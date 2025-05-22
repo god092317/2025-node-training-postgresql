@@ -1,7 +1,7 @@
 // Course.js
 
 const { EntitySchema } = require('typeorm');
-
+console.log("data-entitiesCourse 0-------------------");
 module.exports = new EntitySchema({
   name: 'Course',
   tableName: 'COURSE',
@@ -11,7 +11,7 @@ module.exports = new EntitySchema({
       type: 'uuid',
       generated: 'uuid'
     },
-    user_id: { // 教練的 user_id？每一行什麼意思？
+    user_id: { // 教練的 user_id？以下foreignKey的意思與用法？
       type: 'uuid',
       nullable: false,
       foreignKey: {

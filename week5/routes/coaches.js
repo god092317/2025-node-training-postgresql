@@ -11,6 +11,7 @@ const {
   // 若我要從"../utils/validUtils"一次調用多個函數過來使用，我該怎麼做？
   // 可以這樣做 const { isUndefined, isNotValidInteger, isNotValidString, isValidPassword } = require("../utils/validUtils");
   // 這是什麼意思？這樣的寫法是將 "../utils/validUtils" 中的所有函式都解構賦值到變數中
+console.log("routesCoaches 0-------------------");
 
 // 取得教練列表：{url}/api/coaches/?per=?page=?可以透過 query string 篩選資料。
 // 參數說明如下：- per: 一頁幾筆資料- page: 頁碼
@@ -18,10 +19,8 @@ router.get("/", async(req ,res ,next)=>{
     try {
         const {per, page} = req.query; // 這邊的 per 和 page 是從 req.query 中取得的
         if (
-          isUndefined(per) ||
-          isNotValidString(per) ||
-          isUndefined(page) ||
-          isNotValidString(page)
+          isUndefined(per) || isNotValidString(per) ||
+          isUndefined(page) || isNotValidString(page)
         ) {
           res.status(400).json({
             "status": "failed",
@@ -29,8 +28,8 @@ router.get("/", async(req ,res ,next)=>{
           });
           return;
         }
-        const perNum = parseInt(per || 5); // 每頁預設為 5 筆資料
-        const pageNum  = parseInt(page || 1); // 每頁預設是第 1 頁
+        const perNum = parseInt(per || 5); // 若使用者未輸入 per 則預設顯示 5 筆資料
+        const pageNum  = parseInt(page || 1); // 若使用者未輸入 page 則預設是第 1 頁
         if (perNum <= 0 || pageNum <= 0) {
             res.status(400).json({
                 "status": "failed",
@@ -67,8 +66,7 @@ router.get("/:coachId", async(req ,res ,next)=>{
     try {
         const {coachId} = req.params;
         if (
-          isUndefined(coachId) ||
-          isNotValidString(coachId)
+          isUndefined(coachId) || isNotValidString(coachId)
         ) {
           res.status(400).json({
             "status": "failed",
@@ -78,10 +76,10 @@ router.get("/:coachId", async(req ,res ,next)=>{
         }
         const coach = await dataSource.getRepository("Coach").findOne({
             where: {
-                id: coachId,
+                "id": coachId,
             },
             relations: {
-                User: true,
+                "User": true,
             },
         });
         if (!coach) {
@@ -110,6 +108,7 @@ router.get("/:coachId", async(req ,res ,next)=>{
             "status": "success",
             "data": coachDetail
         });
+        // console.log(coach);
     } catch (error) {
         logger.error(error);
         next(error);

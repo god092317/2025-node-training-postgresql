@@ -4,15 +4,17 @@
  * Module dependencies.
  */
 const http = require('http');
+console.log("WWW 0-------------------");
 const config = require('../config/index');
 const app = require('../app'); // 導入 app.js
 const logger = require('../utils/logger')('www');
 const { dataSource } = require('../db/data-source');
 
-const port = config.get('web.port');
+const port = config.get('web.port'); // 取出 config 資料夾中 web.js 檔案中，port 的值
 
-app.set('port', port);
+app.set('port', port);  // app.set 是什麼？
 
+console.log("WWW 1-------------------");
 const server = http.createServer(app);
 
 function onError (error) {
@@ -37,7 +39,7 @@ function onError (error) {
       process.exit(1);
   }
 }
-
+console.log("WWW 2-------------------");
 server.on('error', onError);
 server.listen(port, async () => {
   try {

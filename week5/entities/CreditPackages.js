@@ -1,7 +1,7 @@
 // CreditPackages.js
 
 const { EntitySchema } = require('typeorm');
-
+console.log("data-entitiesCredit 0-------------------");
 module.exports = new EntitySchema({
   name: 'CreditPackage',
   tableName: 'CREDIT_PACKAGE',

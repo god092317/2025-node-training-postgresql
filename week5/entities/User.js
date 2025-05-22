@@ -1,9 +1,10 @@
 // User.js
 
 const { EntitySchema } = require('typeorm');
-// 可以寫成 const EntitySchema = require('typeorm').EntitySchema; 這樣寫會比較簡潔
+// 可以寫成 const EntitySchema = require('typeorm').EntitySchema;
 // 這邊的 EntitySchema 是一個類別，用來定義資料庫的實體
 // 類別是 class 的意思，這邊的 EntitySchema 是一個類別，用來定義資料庫的實體
+console.log("data-entitiesUser 0-------------------");
 module.exports = new EntitySchema({
   name: 'User',
   tableName: 'USER',
@@ -28,13 +29,14 @@ module.exports = new EntitySchema({
     role: {
       type: 'varchar',
       length: 20,
-      nullable: false
+      nullable: false,
+      default: 'USER'
     },
     password: {
       type: 'varchar',
       length: 72,
       nullable: false,
-      select: false
+      select: false     // 不會在查詢時回傳密碼
     },
     created_at: {
       type: 'timestamp',

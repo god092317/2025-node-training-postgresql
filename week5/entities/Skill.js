@@ -1,7 +1,7 @@
 // Skill.js
 
 const { EntitySchema } = require('typeorm');
-
+console.log("data-entitiesSkill 0-------------------");
 module.exports = new EntitySchema({
   name: 'Skill',
   tableName: 'SKILL',

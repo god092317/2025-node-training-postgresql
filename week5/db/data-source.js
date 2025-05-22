@@ -1,15 +1,16 @@
 const { DataSource } = require('typeorm'); 
 // DataSource 是什麼？是 TypeORM 的一個類別，用來建立資料庫連線的
-// 與 const DataSouce = require('typeorm').DataSource; 有什麼差別？
-// 沒有差別，只是寫法不同而已
+// 寫法等同於 const DataSouce = require('typeorm').DataSource
 const config = require('../config/index'); 
 // config 是什麼？是用來讀取環境變數的
-
+console.log("dataSource 0-------------------");
 const CreditPackage = require('../entities/CreditPackages');
 const Coach = require('../entities/Coach');
 const Course = require('../entities/Course');
 const Skill = require('../entities/Skill');
 const User = require('../entities/User');
+
+console.log("dataSource 1-------------------");
 
 const dataSource = new DataSource({
   type: 'postgres',
